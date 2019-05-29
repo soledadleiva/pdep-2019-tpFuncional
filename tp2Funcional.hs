@@ -21,15 +21,19 @@ type Velocidad = Float
 -- Punto 0
 deReversa :: Truco 
 deReversa unAuto = unAuto {nivelNafta = (+unQuintoDeVelocidad unAuto).nivelNafta $ unAuto}
+
 unQuintoDeVelocidad:: Auto -> Velocidad
-unQuintoDeVelocidad unAuto = (/5).velocidad $ unAuto
+unQuintoDeVelocidad = (/5).velocidad
 
 impresionar :: Truco 
 impresionar unAuto = unAuto {velocidad = (*2).velocidad $ unAuto}
 
 sumarVelocidad :: Auto -> Velocidad -> Auto
 sumarVelocidad unAuto numeroX = unAuto {velocidad = (+numeroX).velocidad $ unAuto}
-nitro :: Truco
+
+--nitro :: Int -> Truco -- Int -> Auto -> Auto
+--nitro numero unAuto = sumarVelocidad unAuto numero
+nitro:: Truco
 nitro unAuto = sumarVelocidad unAuto 15
 
 fingirAmor :: Nombre -> Truco 
@@ -57,6 +61,7 @@ gushtav = Auto {
     velocidad = 130,
     nombreEnamorade = "PetiLaLinda",
     trucoParticular = nitro
+     --(nitro 20) 
 }
 
 rodra = Auto {
@@ -69,7 +74,7 @@ rodra = Auto {
 
 -- Punto 2
 esVocal :: Auto -> Nombre
-esVocal (Auto _ _ _ nombreEnamorade _) = filter(`elem`  "aeiouAEIOU") $  nombreEnamorade
+esVocal = filter (`elem`  "aeiouAEIOU").nombreEnamorade
 
 cuantasVocales :: Auto -> Int 
 cuantasVocales = length.esVocal 
@@ -93,10 +98,14 @@ queTrucazo unAuto nombre = incrementarVelocidad $ (fingirAmor nombre unAuto)
 
 turbo :: Truco 
 turbo = naftaCero.nuevaVelocidad
+--turbo unAuto = unAuto {nivelNafta=0 , velocidad= nuevaVelocidad unAuto  }
+
 nuevaVelocidad :: Auto->Auto
 nuevaVelocidad unAuto = sumarVelocidad unAuto (naftaPorDiez  unAuto)  
+
 naftaPorDiez :: Auto -> NivelNafta   
-naftaPorDiez unAuto =  (*10).nivelNafta $ unAuto
+naftaPorDiez =  (*10).nivelNafta
+
 naftaCero :: Truco 
 naftaCero unAuto = unAuto {nivelNafta=0}
 
@@ -121,94 +130,117 @@ potreroFunes = Carrera {
    longitudPista = 5,      
    nombreIntegrantesPublico = ["Ronco", "Tinch", "Dodain"],
    trampa = sacarAlPistero,
-   participante = [rochaMcQueen, biankerr, gushtav,rodra]
+   participante = [rochaMcQueen, biankerr, gushtav, rodra]
 } 
 
 --Punto 2
 sacarAlPistero :: Trampa
-sacarAlPistero unaCarrera= unaCarrera{participante= (sacarPrimerElemento.participante) unaCarrera}
+sacarAlPistero unaCarrera= unaCarrera{participante= sacarPrimerElemento.participante $ unaCarrera}
+
 sacarPrimerElemento :: [Auto]->[Auto]
 sacarPrimerElemento = drop 1
-cuantosParticipantesQuedan :: [Auto]->Int
-cuantosParticipantesQuedan = length.sacarPrimerElemento
 
 
-lluvia :: Carrera -> [Auto]
-lluvia unaCarrera = map bajarVelocidad (participante unaCarrera)
+lluvia :: Trampa
+lluvia unaCarrera = unaCarrera {participante = map bajarVelocidad (participante unaCarrera)}
+
 bajarVelocidad :: Auto -> Auto
 bajarVelocidad unAuto = unAuto {velocidad = (+(-10)).velocidad $ unAuto}
 
 
-pocaReserva:: Carrera -> [Auto]
-pocaReserva unaCarrera =filter masDe30Litros (participante unaCarrera)
+pocaReserva:: Trampa
+pocaReserva unaCarrera = unaCarrera {participante = filter masDe30Litros (participante unaCarrera)} 
+
 masDe30Litros :: Auto -> Bool
 masDe30Litros (Auto _ nivelNafta _ _ _) = (>30)nivelNafta
 
 
-neutralizarTrucos :: Carrera->[Auto]
-neutralizarTrucos unaCarrera = map modificarTruco (participante unaCarrera)
-modificarTruco :: Auto->Auto
+neutralizarTrucos :: Trampa 
+neutralizarTrucos unaCarrera = unaCarrera {participante = map modificarTruco (participante unaCarrera)}
+
+modificarTruco :: Auto -> Auto
 modificarTruco unAuto = unAuto {trucoParticular = inutilidad}
+
 inutilidad :: Truco
-inutilidad= id 
+inutilidad = id 
 
 
 podio :: Trampa
 podio unaCarrera = unaCarrera {participante = dejarPrimerosTres.participante $ unaCarrera}
+
 dejarPrimerosTres :: [Auto]->[Auto]
 dejarPrimerosTres = take 3
 
-
 -- Punto 3
 -- 1)
-restarCombustible :: Auto -> Carrera -> Auto
-restarCombustible unAuto unaCarrera = unAuto {nivelNafta =(+(-calculoCombustible unaCarrera unAuto)).nivelNafta $ unAuto}
-calculoCombustible :: Carrera -> Auto -> Velocidad
+restarCombustible :: Carrera -> Carrera
+restarCombustible unaCarrera = unaCarrera {participante = map(nuevoCombustibleDeUnAuto unaCarrera).participante $ unaCarrera}
+
+nuevoCombustibleDeUnAuto ::Carrera-> Auto -> Auto
+nuevoCombustibleDeUnAuto unaCarrera unAuto= unAuto {nivelNafta =(+(-calculoCombustible unaCarrera unAuto)).nivelNafta $ unAuto} 
+
+calculoCombustible :: Carrera->Auto->Velocidad
 calculoCombustible unaCarrera unAuto = (*pistaDivididoDiez unaCarrera).velocidad $ unAuto
+
 pistaDivididoDiez :: Carrera -> LongitudPista
 pistaDivididoDiez unaCarrera = (/10).longitudPista $ unaCarrera
 
--- 2)
-nombreEnPublico :: Auto -> Carrera ->  Bool
-nombreEnPublico unAuto unaCarrera = elem (nombreEnamorade unAuto) (nombreIntegrantesPublico  unaCarrera)
+
+-- 2) 
+aplicarTruco :: Trampa
+aplicarTruco unaCarrera = unaCarrera {participante = combinarListas unaCarrera}
+
+nombreEnPublico :: Carrera -> Auto -> Bool
+nombreEnPublico unaCarrera unAuto = elem (nombreEnamorade unAuto) (nombreIntegrantesPublico unaCarrera)
+
+filtrarEnamoradaEnPublico :: Carrera -> [Auto]
+filtrarEnamoradaEnPublico unaCarrera = filter(nombreEnPublico unaCarrera).participante $ unaCarrera
+
+noApareceEnPublico :: Carrera->[Auto]
+noApareceEnPublico unaCarrera =filter(not.(nombreEnPublico unaCarrera)).participante $unaCarrera
+
+mapearParticipantesYAplicarTruco :: Carrera -> [Auto]
+mapearParticipantesYAplicarTruco unaCarrera= (map(hacerTruco)).filtrarEnamoradaEnPublico $ unaCarrera
+
+combinarListas :: Carrera -> [Auto]
+combinarListas unaCarrera= (mapearParticipantesYAplicarTruco unaCarrera) ++ (noApareceEnPublico unaCarrera)
+
 hacerTruco :: Auto -> Auto
-hacerTruco rochaMcQueen = deReversa rochaMcQueen
-hacerTruco biankerr= impresionar biankerr
-hacerTruco rodra = fingirAmor "Petra" rodra
-hacerTruco gushtav = nitro gushtav
-aplicarTruco :: Auto -> Carrera -> Auto
-aplicarTruco unAuto unaCarrera 
- |(nombreEnPublico unAuto unaCarrera) == True = hacerTruco unAuto
- |otherwise = unAuto
+hacerTruco unAuto = (trucoParticular unAuto) unAuto
+
 
 -- 3)
-todosSufrenTrampa :: Carrera -> Carrera
-todosSufrenTrampa unaCarrera = sacarAlPistero.sacarAlPistero.sacarAlPistero.sacarAlPistero $ unaCarrera
+todosSufrenTrampa :: Trampa
+todosSufrenTrampa unaCarrera = (trampa unaCarrera) unaCarrera
 
--- Implementar 1)
-darVuelta :: Carrera -> Auto -> Auto
-darVuelta unaCarrera unAuto = aplicarTruco (restarCombustible unAuto (todosSufrenTrampa unaCarrera)) unaCarrera
+
+--Implementar 1)
+darVuelta :: Trampa
+darVuelta = todosSufrenTrampa.aplicarTruco.restarCombustible
+
 --Implementar 2)
+correrCarrera :: Trampa
+correrCarrera unaCarrera
+  | (>0).cantidadDeVueltas $ unaCarrera = (correrCarrera.disminuirVueltas.darVuelta) unaCarrera
+  | otherwise = unaCarrera
 
+disminuirVueltas :: Trampa
+disminuirVueltas unaCarrera = unaCarrera {cantidadDeVueltas= (+(-1)).cantidadDeVueltas $ unaCarrera}
 
 --Punto 4
-quienGana :: Carrera -> Auto -> Auto
-quienGana unaCarrera unAuto = participante (darVuelta.darVuelta.darVuelta $ unaCarrera) 
+quienGana :: Carrera -> Auto
+quienGana unaCarrera = head.participante $ (correrCarrera unaCarrera)
 
 -- Punto 5
 elGranTruco :: [Truco] -> Auto -> Auto
 elGranTruco [] unAuto = unAuto
 elGranTruco (x:xs) unAuto = elGranTruco xs $(x unAuto)
 
+
 -- Punto 6
 --a) Si, pero jamas terminaria.
 --b) Si, pues se puede extraer el primer elemento de la lista.
 --c) En este caso no va a devolver nada, pues son infinitos elementos y al aplicarle una función jamas terminaria.
-
-
-
-
-
 
 
 
