@@ -243,4 +243,3 @@ elGranTruco (x:xs) unAuto = elGranTruco xs $(x unAuto)
 --c) En este caso no va a devolver nada, pues son infinitos elementos y al aplicarle una función jamas terminaria.
 
 
-
